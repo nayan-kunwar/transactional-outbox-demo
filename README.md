@@ -8,7 +8,7 @@ This repository contains an **interactive visualization** of the Transactional O
 
 Read the full article here:
 
-👉 https://your-article-link-here
+👉 https://medium.com/@nayankunwar678/the-transactional-outbox-pattern-because-distributed-systems-lie-6196c51debf7
 
 ---
 
