@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transactional Outbox Pattern — Animated Diagram</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f5f4f0;
+    --color-background-tertiary: #eeede9;
+    --color-text-primary: #1a1a18;
+    --color-text-secondary: #6b6a65;
+    --color-border-tertiary: rgba(0,0,0,0.12);
+    --color-border-secondary: rgba(0,0,0,0.22);
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --font-sans: system-ui, -apple-system, sans-serif;
+    --font-mono: ui-monospace, 'Cascadia Code', monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-background-primary: #1e1e1c;
+      --color-background-secondary: #272724;
+      --color-background-tertiary: #2f2f2c;
+      --color-text-primary: #e8e6de;
+      --color-text-secondary: #8c8b84;
+      --color-border-tertiary: rgba(255,255,255,0.10);
+      --color-border-secondary: rgba(255,255,255,0.18);
+    }
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-background-tertiary);
+    color: var(--color-text-primary);
+    padding: 32px 16px;
+    min-height: 100vh;
+  }
+
+  .wrapper {
+    max-width: 780px;
+    margin: 0 auto;
+    background: var(--color-background-primary);
+    border-radius: 16px;
+    border: 0.5px solid var(--color-border-tertiary);
+    padding: 28px 28px 32px;
+  }
+
+  h1 {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: var(--color-text-primary);
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-bottom: 20px;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  @keyframes travel { 0%{offset-distance:0%;opacity:1} 90%{opacity:1} 100%{offset-distance:100%;opacity:0} }
+  @keyframes flash { 0%,100%{opacity:1} 40%{opacity:.3} }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-4px)} 40%{transform:translateX(4px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
+  @keyframes rowIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes rowOut { from{opacity:1} to{opacity:0;transform:translateX(8px)} }
+  @keyframes successPop { 0%{opacity:0;transform:scale(.7)} 60%{opacity:1;transform:scale(1.15)} 100%{opacity:1;transform:scale(1)} }
+
+  .box {
+    border-radius: 10px;
+    border: 0.5px solid var(--color-border-tertiary);
+    background: var(--color-background-primary);
+    padding: 10px 14px;
+    position: relative;
+  }
+  .box.purple { background: #EEEDFE; border-color: #AFA9EC; }
+  .box.teal   { background: #E1F5EE; border-color: #5DCAA5; }
+  .box.amber  { background: #FAEEDA; border-color: #EF9F27; }
+  .box.coral  { background: #FAECE7; border-color: #F0997B; }
+  .box.gray   { background: var(--color-background-secondary); }
+
+  .box.purple .box-title { color: #3C3489; }
+  .box.purple .box-sub   { color: #534AB7; }
+  .box.teal .box-title   { color: #085041; }
+  .box.teal .box-sub     { color: #0F6E56; }
+  .box.amber .box-title  { color: #633806; }
+  .box.amber .box-sub    { color: #854F0B; }
+  .box.coral .box-title  { color: #4A1B0C; }
+  .box.coral .box-sub    { color: #712B13; }
+
+  .box-title { font-size: 13px; font-weight: 500; }
+  .box-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+  .box.purple .box-sub { color: #534AB7; }
+  .box.teal .box-sub { color: #0F6E56; }
+  .box.amber .box-sub { color: #854F0B; }
+  .box.coral .box-sub { color: #712B13; }
+
+  .arr-head.right {
+    width: 0; height: 0;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-left: 7px solid var(--color-border-secondary);
+  }
+
+  #canvas { position: relative; min-height: 540px; padding: 0 0 16px; }
+
+  .row-el {
+    display: flex; gap: 6px; align-items: center;
+    font-size: 11px; padding: 4px 6px;
+    border-radius: 4px;
+    border: 0.5px solid var(--color-border-tertiary);
+    margin-bottom: 3px;
+    background: var(--color-background-primary);
+  }
+  .row-el.new { animation: rowIn .4s ease forwards; }
+
+  .badge {
+    font-size: 10px; padding: 1px 6px; border-radius: 10px;
+    font-weight: 500;
+  }
+  .badge.pending { background: #FAEEDA; color: #854F0B; }
+  .badge.sent    { background: #E1F5EE; color: #0F6E56; }
+
+  .btn {
+    padding: 6px 14px; font-size: 12px; border-radius: 8px;
+    border: 0.5px solid var(--color-border-secondary);
+    background: var(--color-background-primary);
+    color: var(--color-text-primary);
+    cursor: pointer; transition: background .15s;
+  }
+  .btn:hover { background: var(--color-background-secondary); }
+  .btn:active { transform: scale(.97); }
+  .btn.primary { background: #EEEDFE; border-color: #AFA9EC; color: #3C3489; }
+  .btn.primary:hover { background: #CECBF6; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+  .log-line { font-size: 11px; color: var(--color-text-secondary); padding: 2px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .log-line:last-child { border-bottom: none; }
+  .log-line.ok   { color: #0F6E56; }
+  .log-line.warn { color: #854F0B; }
+  .log-line.err  { color: #A32D2D; }
+
+  .scenario-btn {
+    padding: 5px 10px; font-size: 11px; border-radius: 6px;
+    border: 0.5px solid var(--color-border-tertiary);
+    background: var(--color-background-secondary);
+    color: var(--color-text-secondary);
+    cursor: pointer; transition: all .15s;
+  }
+  .scenario-btn.active { background: #EEEDFE; border-color: #AFA9EC; color: #3C3489; font-weight: 500; }
+
+  #success-badge {
+    display: none; position: absolute; top: 8px; right: 8px;
+    background: #E1F5EE; border: 0.5px solid #5DCAA5;
+    color: #085041; font-size: 11px; font-weight: 500;
+    padding: 3px 8px; border-radius: 20px;
+  }
+
+  .top-grid {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 52px minmax(0,1fr) 52px minmax(0,1fr);
+    gap: 0;
+    align-items: center;
+    margin-bottom: 32px;
+  }
+  .arrow-connector {
+    display: flex; align-items: center; padding: 0 4px;
+  }
+  .arrow-line { flex: 1; height: 1.5px; background: var(--color-border-secondary); }
+
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 52px minmax(0,1fr) 52px minmax(0,1fr);
+    gap: 0;
+    align-items: start;
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <h1>Transactional Outbox Pattern</h1>
+  <p class="subtitle">Step through how the outbox pattern handles a real order placement — including what happens when the broker fails.</p>
+
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+    <button class="scenario-btn active" onclick="setScenario('happy')" id="btn-happy">Normal flow</button>
+    <button class="scenario-btn" onclick="setScenario('fail')" id="btn-fail">Broker failure</button>
+    <button class="scenario-btn" onclick="setScenario('retry')" id="btn-retry">Relay retry</button>
+  </div>
+
+  <div id="canvas">
+    <div class="top-grid">
+      <div class="box purple" id="box-app">
+        <div class="box-title">Your service</div>
+        <div class="box-sub">Handles the request</div>
+      </div>
+      <div class="arrow-connector">
+        <div class="arrow-line"></div>
+        <div class="arr-head right"></div>
+      </div>
+      <div class="box purple" id="box-db" style="position:relative;">
+        <div class="box-title">Database</div>
+        <div class="box-sub">orders + outbox tables</div>
+        <div id="success-badge">✓ committed</div>
+      </div>
+      <div class="arrow-connector">
+        <div class="arrow-line"></div>
+        <div class="arr-head right"></div>
+      </div>
+      <div class="box amber" id="box-relay">
+        <div class="box-title">Message relay</div>
+        <div class="box-sub">Polls outbox</div>
+      </div>
+    </div>
+
+    <div class="bottom-grid">
+      <div>
+        <div class="box gray" style="min-height:140px;">
+          <div class="box-title" style="margin-bottom:8px;">Transaction log</div>
+          <div id="txn-log" style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-secondary);line-height:1.7;">
+            <div>— awaiting action —</div>
+          </div>
+        </div>
+      </div>
+
+      <div></div>
+
+      <div>
+        <div class="box teal" style="min-height:140px;">
+          <div class="box-title" style="margin-bottom:8px;">Outbox table</div>
+          <div id="outbox-rows"></div>
+          <div id="outbox-empty" style="font-size:11px;color:var(--color-text-secondary);">— empty —</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;padding:0 4px;padding-top:32px;">
+        <div style="flex:1;height:1.5px;background:var(--color-border-secondary);margin-top:6px;"></div>
+        <div class="arr-head right"></div>
+      </div>
+
+      <div>
+        <div class="box coral" id="box-broker" style="min-height:140px;">
+          <div class="box-title">Message broker</div>
+          <div class="box-sub" style="margin-bottom:8px;">Kafka / RabbitMQ</div>
+          <div id="broker-msgs"></div>
+          <div id="broker-empty" style="font-size:11px;color:var(--color-text-secondary);">— no messages —</div>
+        </div>
+        <div style="margin-top:12px;">
+          <div class="box gray">
+            <div class="box-title">Consumer service</div>
+            <div class="box-sub">Inventory / Email / etc.</div>
+            <div id="consumer-status" style="font-size:11px;margin-top:6px;color:var(--color-text-secondary);">Waiting…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;" class="box gray">
+      <div class="box-title" style="margin-bottom:6px;">Event log</div>
+      <div id="event-log" style="min-height:36px;">
+        <div class="log-line">Ready. Press "Run step" to begin.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+    <button class="btn primary" onclick="nextStep()" id="btn-next">Run step ▶</button>
+    <button class="btn" onclick="resetAll()">Reset</button>
+    <span id="step-indicator" style="font-size:12px;color:var(--color-text-secondary);">Step 0 / 5</span>
+  </div>
+</div>
+
+<script>
+const scenarios = {
+  happy: [
+    {
+      title: 'Step 1 — Begin transaction',
+      log: [['Begin transaction', 'ok'], ['INSERT INTO orders (id, total) VALUES (...)', 'ok']],
+      outbox: [], broker: [], consumer: 'Waiting…',
+      highlight: 'box-app', note: 'ok', noteText: 'App starts a DB transaction and inserts the order row.',
+    },
+    {
+      title: 'Step 2 — Insert outbox row',
+      log: [['Begin transaction', 'ok'], ['INSERT INTO orders ...', 'ok'], ["INSERT INTO outbox (event_type, payload) VALUES ('order.created', {...})", 'ok']],
+      outbox: [{ id: 'evt-001', type: 'order.created', status: 'pending' }],
+      broker: [], consumer: 'Waiting…',
+      highlight: 'box-db', note: 'ok', noteText: 'Same transaction: insert into outbox. Both writes are atomic.',
+    },
+    {
+      title: 'Step 3 — Commit',
+      log: [['Begin transaction', 'ok'], ['INSERT INTO orders ...', 'ok'], ['INSERT INTO outbox ...', 'ok'], ['COMMIT ✓', 'ok']],
+      outbox: [{ id: 'evt-001', type: 'order.created', status: 'pending' }],
+      broker: [], consumer: 'Waiting…',
+      highlight: 'box-db', note: 'ok', noteText: 'Transaction committed. Order and outbox row are durably saved together.',
+      showSuccess: true,
+    },
+    {
+      title: 'Step 4 — Relay picks up row',
+      log: [['COMMIT ✓', 'ok'], ['[relay] SELECT * FROM outbox WHERE published_at IS NULL', 'ok'], ['[relay] Found 1 pending row', 'ok']],
+      outbox: [{ id: 'evt-001', type: 'order.created', status: 'pending' }],
+      broker: [], consumer: 'Waiting…',
+      highlight: 'box-relay', note: 'ok', noteText: 'Message relay wakes up, polls the outbox, finds the pending event.',
+    },
+    {
+      title: 'Step 5 — Publish & mark done',
+      log: [['[relay] Publishing to broker...', 'ok'], ['[relay] Published ✓', 'ok'], ['[relay] UPDATE outbox SET published_at = now()', 'ok']],
+      outbox: [],
+      broker: [{ id: 'evt-001', type: 'order.created' }],
+      consumer: '✓ Event received — reserving stock',
+      highlight: 'box-broker', note: 'ok', noteText: 'Relay publishes to broker, marks row done. Consumer processes the event.',
+    },
+  ],
+  fail: [
+    {
+      title: 'Step 1 — Transaction commits',
+      log: [['Begin transaction', 'ok'], ['INSERT INTO orders ...', 'ok'], ['INSERT INTO outbox ...', 'ok'], ['COMMIT ✓', 'ok']],
+      outbox: [{ id: 'evt-002', type: 'order.created', status: 'pending' }],
+      broker: [], consumer: 'Waiting…',
+      highlight: 'box-db', note: 'ok', noteText: 'Order and outbox row committed atomically. Now watch what happens.',
+      showSuccess: true,
+    },
+    {
+      title: 'Step 2 — Broker is down!',
+      log: [['[relay] Publishing to broker...', 'ok'], ['[relay] ERROR: connection refused', 'err'], ['[relay] Publish failed — row stays pending', 'warn']],
+      outbox: [{ id: 'evt-002', type: 'order.created', status: 'pending' }],
+      broker: [], consumer: 'Waiting…',
+      highlight: 'box-broker', note: 'fail', noteText: 'Broker is unreachable. Relay fails — but the outbox row is untouched.',
+      shakeBox: 'box-broker',
+    },
+    {
+      title: 'Step 3 — Relay retries later',
+      log: [['[relay] Broker recovered', 'ok'], ['[relay] Retrying pending rows...', 'ok'], ['[relay] Published evt-002 ✓', 'ok']],
+      outbox: [],
+      broker: [{ id: 'evt-002', type: 'order.created' }],
+      consumer: '✓ Event received (delayed, but not lost)',
+      highlight: 'box-relay', note: 'ok', noteText: 'Broker recovers. Relay retries, publishes successfully. No message lost.',
+    },
+  ],
+  retry: [
+    {
+      title: 'Step 1 — Two commits, one relay crash',
+      log: [['COMMIT order-A ✓', 'ok'], ['COMMIT order-B ✓', 'ok']],
+      outbox: [{ id: 'evt-A', type: 'order.created', status: 'pending' }, { id: 'evt-B', type: 'order.created', status: 'pending' }],
+      broker: [], consumer: 'Waiting…',
+      highlight: 'box-db', note: 'ok', noteText: 'Two orders committed. Relay starts publishing…',
+      showSuccess: true,
+    },
+    {
+      title: 'Step 2 — Relay publishes evt-A, then crashes',
+      log: [['[relay] Published evt-A', 'ok'], ['[relay] CRASH before marking done', 'err'], ['[relay] evt-A still shows pending in outbox', 'warn']],
+      outbox: [{ id: 'evt-A', type: 'order.created', status: 'pending' }, { id: 'evt-B', type: 'order.created', status: 'pending' }],
+      broker: [{ id: 'evt-A', type: 'order.created' }],
+      consumer: 'Received evt-A once',
+      highlight: 'box-relay', note: 'warn', noteText: 'Relay crashed mid-flight. evt-A was published but not marked done.',
+      shakeBox: 'box-relay',
+    },
+    {
+      title: 'Step 3 — Relay restarts, re-delivers evt-A',
+      log: [['[relay] Restarted', 'ok'], ['[relay] Found 2 pending rows (incl. evt-A)', 'warn'], ['[relay] Publishing evt-A again (duplicate!)', 'warn'], ['[relay] Published evt-B ✓', 'ok']],
+      outbox: [],
+      broker: [{ id: 'evt-A', type: 'order.created' }, { id: 'evt-A (dup)', type: 'order.created' }, { id: 'evt-B', type: 'order.created' }],
+      consumer: 'Received evt-A twice — idempotency key deduplicates',
+      highlight: 'box-broker', note: 'warn', noteText: 'At-least-once delivery in action. Consumer uses an idempotency key to ignore the duplicate.',
+    },
+  ],
+};
+
+let currentScenario = 'happy';
+let steps = scenarios.happy;
+let step = 0;
+
+function setScenario(s) {
+  currentScenario = s;
+  steps = scenarios[s];
+  ['happy','fail','retry'].forEach(k => {
+    document.getElementById('btn-'+k).classList.toggle('active', k === s);
+  });
+  resetAll();
+}
+
+function resetAll() {
+  step = 0;
+  steps = scenarios[currentScenario];
+  document.getElementById('txn-log').innerHTML = '<div>— awaiting action —</div>';
+  document.getElementById('outbox-rows').innerHTML = '';
+  document.getElementById('outbox-empty').style.display = '';
+  document.getElementById('broker-msgs').innerHTML = '';
+  document.getElementById('broker-empty').style.display = '';
+  document.getElementById('consumer-status').textContent = 'Waiting…';
+  document.getElementById('event-log').innerHTML = '<div class="log-line">Ready. Press "Run step" to begin.</div>';
+  document.getElementById('step-indicator').textContent = 'Step 0 / ' + steps.length;
+  document.getElementById('btn-next').disabled = false;
+  const sb = document.getElementById('success-badge');
+  if (sb) sb.style.display = 'none';
+  ['box-app','box-db','box-relay','box-broker'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.outline = '';
+  });
+}
+
+function nextStep() {
+  if (step >= steps.length) return;
+  const s = steps[step];
+  step++;
+  applyStep(s);
+  document.getElementById('step-indicator').textContent = 'Step ' + step + ' / ' + steps.length;
+  if (step >= steps.length) document.getElementById('btn-next').disabled = true;
+}
+
+function applyStep(s) {
+  ['box-app','box-db','box-relay','box-broker'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.outline = '';
+  });
+  if (s.highlight) {
+    const el = document.getElementById(s.highlight);
+    if (el) el.style.outline = '2px solid #7F77DD';
+  }
+  if (s.shakeBox) {
+    const el = document.getElementById(s.shakeBox);
+    if (el) {
+      el.style.animation = 'shake .4s ease';
+      setTimeout(() => { el.style.animation = ''; }, 500);
+    }
+  }
+  const sb = document.getElementById('success-badge');
+  if (sb) {
+    sb.style.display = s.showSuccess ? 'block' : 'none';
+    if (s.showSuccess) sb.style.animation = 'successPop .4s ease forwards';
+  }
+
+  const txnLog = document.getElementById('txn-log');
+  if (s.log) {
+    txnLog.innerHTML = s.log.map(([txt, cls]) =>
+      `<div style="color:${cls==='ok'?'#0F6E56':cls==='err'?'#A32D2D':'#854F0B'}">${txt}</div>`
+    ).join('');
+  }
+
+  const outboxEl = document.getElementById('outbox-rows');
+  const outboxEmpty = document.getElementById('outbox-empty');
+  if (s.outbox.length === 0) {
+    outboxEl.innerHTML = '';
+    outboxEmpty.style.display = '';
+  } else {
+    outboxEmpty.style.display = 'none';
+    outboxEl.innerHTML = s.outbox.map(r =>
+      `<div class="row-el new">
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-secondary);flex:1">${r.id}</span>
+        <span style="font-size:10px;color:var(--color-text-secondary);">${r.type}</span>
+        <span class="badge ${r.status}">${r.status}</span>
+      </div>`
+    ).join('');
+  }
+
+  const brokerEl = document.getElementById('broker-msgs');
+  const brokerEmpty = document.getElementById('broker-empty');
+  if (s.broker.length === 0) {
+    brokerEl.innerHTML = '';
+    brokerEmpty.style.display = '';
+  } else {
+    brokerEmpty.style.display = 'none';
+    brokerEl.innerHTML = s.broker.map(r =>
+      `<div class="row-el new">
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-secondary);flex:1">${r.id}</span>
+        <span class="badge sent">${r.type}</span>
+      </div>`
+    ).join('');
+  }
+
+  document.getElementById('consumer-status').textContent = s.consumer || 'Waiting…';
+
+  const evtLog = document.getElementById('event-log');
+  const cls = s.note === 'ok' ? 'ok' : s.note === 'fail' ? 'err' : s.note === 'warn' ? 'warn' : '';
+  evtLog.innerHTML = `<div class="log-line ${cls}" style="animation:fadeIn .3s ease">${s.noteText || ''}</div>`;
+}
+</script>
+</body>
+</html>
