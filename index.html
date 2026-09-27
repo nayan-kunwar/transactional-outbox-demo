@@ -155,6 +155,27 @@
   }
   .scenario-btn.active { background: #EEEDFE; border-color: #AFA9EC; color: #3C3489; font-weight: 500; }
 
+  .github-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; font-size: 12px; border-radius: 8px;
+    border: 0.5px solid var(--color-border-secondary);
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary); text-decoration: none; white-space: nowrap;
+    transition: background .15s;
+  }
+  .github-btn:hover { background: var(--color-background-tertiary); }
+  .github-btn svg { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
+
+  .footer-star a {
+    display: inline-flex; align-items: center; gap: 4px;
+    color: var(--color-text-primary); font-weight: 600; text-decoration: none;
+  }
+  .footer-star a:hover { text-decoration: underline; color: #3C3489; }
+  .footer-star svg { width: 14px; height: 14px; fill: currentColor; }
+  @media (prefers-color-scheme: dark) {
+    .footer-star a:hover { color: #CECBF6; }
+  }
+
   #success-badge {
     display: none; position: absolute; top: 8px; right: 8px;
     background: #E1F5EE; border: 0.5px solid #5DCAA5;
@@ -184,7 +205,13 @@
 </head>
 <body>
 <div class="wrapper">
-  <h1>Transactional Outbox Pattern</h1>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:wrap;">
+    <h1 style="margin-bottom:0;">Transactional Outbox Pattern</h1>
+    <a href="https://github.com/nayan-kunwar/transactional-outbox-demo" target="_blank" rel="noopener" class="github-btn" aria-label="View on GitHub and star">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      <span>Star</span>
+    </a>
+  </div>
   <p class="subtitle">Step through how the outbox pattern handles a real order placement — including what happens when the broker fails.</p>
 
   <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
@@ -269,9 +296,18 @@
   </div>
 
   <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+    <button class="btn" onclick="prevStep()" id="btn-prev" disabled>◀ Prev</button>
     <button class="btn primary" onclick="nextStep()" id="btn-next">Run step ▶</button>
     <button class="btn" onclick="resetAll()">Reset</button>
     <span id="step-indicator" style="font-size:12px;color:var(--color-text-secondary);">Step 0 / 5</span>
+  </div>
+
+  <div class="footer-star" style="margin-top:16px;padding-top:12px;border-top:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--color-text-secondary);flex-wrap:wrap;text-align:center;">
+    <span>If this helped you, give it a</span>
+    <a href="https://github.com/nayan-kunwar/transactional-outbox-demo" target="_blank" rel="noopener" aria-label="Star on GitHub">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      <span>⭐ star on GitHub</span>
+    </a>
   </div>
 </div>
 
@@ -395,6 +431,7 @@ function resetAll() {
   document.getElementById('event-log').innerHTML = '<div class="log-line">Ready. Press "Run step" to begin.</div>';
   document.getElementById('step-indicator').textContent = 'Step 0 / ' + steps.length;
   document.getElementById('btn-next').disabled = false;
+  document.getElementById('btn-prev').disabled = true;
   const sb = document.getElementById('success-badge');
   if (sb) sb.style.display = 'none';
   ['box-app','box-db','box-relay','box-broker'].forEach(id => {
@@ -409,7 +446,21 @@ function nextStep() {
   step++;
   applyStep(s);
   document.getElementById('step-indicator').textContent = 'Step ' + step + ' / ' + steps.length;
+  document.getElementById('btn-prev').disabled = false;
   if (step >= steps.length) document.getElementById('btn-next').disabled = true;
+}
+
+function prevStep() {
+  if (step <= 0) return;
+  step--;
+  if (step === 0) {
+    resetAll();
+  } else {
+    applyStep(steps[step - 1]);
+    document.getElementById('step-indicator').textContent = 'Step ' + step + ' / ' + steps.length;
+    document.getElementById('btn-prev').disabled = (step === 0);
+    document.getElementById('btn-next').disabled = false;
+  }
 }
 
 function applyStep(s) {
