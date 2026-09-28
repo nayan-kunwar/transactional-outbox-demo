@@ -78,6 +78,8 @@
     background: var(--color-background-primary);
     padding: 10px 14px;
     position: relative;
+    min-width: 0;
+    overflow-wrap: break-word;
   }
   .box.purple { background: #EEEDFE; border-color: #AFA9EC; }
   .box.teal   { background: #E1F5EE; border-color: #5DCAA5; }
@@ -161,6 +163,7 @@
     border: 0.5px solid var(--color-border-secondary);
     background: var(--color-background-secondary);
     color: var(--color-text-primary); text-decoration: none; white-space: nowrap;
+    flex-shrink: 0;
     transition: background .15s;
   }
   .github-btn:hover { background: var(--color-background-tertiary); }
@@ -190,6 +193,7 @@
     align-items: center;
     margin-bottom: 32px;
   }
+  .top-grid > *, .bottom-grid > * { min-width: 0; }
   .arrow-connector {
     display: flex; align-items: center; padding: 0 4px;
   }
@@ -207,10 +211,16 @@
 <div class="wrapper">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:wrap;">
     <h1 style="margin-bottom:0;">Transactional Outbox Pattern</h1>
-    <a href="https://github.com/nayan-kunwar/transactional-outbox-demo" target="_blank" rel="noopener" class="github-btn" aria-label="View on GitHub and star">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-      <span>Star</span>
-    </a>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="https://github.com/nayan-kunwar/transactional-outbox-demo" target="_blank" rel="noopener" class="github-btn" aria-label="View on GitHub and star">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        <span>Star</span>
+      </a>
+      <a href="https://medium.com/@nayankunwar678/the-transactional-outbox-pattern-because-distributed-systems-lie-6196c51debf7" target="_blank" rel="noopener" class="github-btn" aria-label="Read full article on Medium">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.21 0A4.201 4.201 0 0 0 0 4.21v15.58A4.201 4.201 0 0 0 4.21 24h15.58A4.201 4.201 0 0 0 24 19.79v-1.093c-.137.013-.278.02-.422.02-2.577 0-4.027-2.146-4.09-4.832a7.592 7.592 0 0 1 .022-.708c.093-1.186.475-2.241 1.105-3.022a3.885 3.885 0 0 1 1.395-1.1c.468-.237 1.127-.367 1.664-.367h.023c.101 0 .202.004.303.01V4.211A4.201 4.201 0 0 0 19.79 0Zm.198 5.583h4.165l3.588 8.435 3.59-8.435h3.864v.146l-.019.004c-.705.16-1.063.397-1.063 1.254h-.003l.003 10.274c.06.676.424.885 1.063 1.03l.02.004v.145h-4.923v-.145l.019-.005c.639-.144.994-.353 1.054-1.03V7.267l-4.745 11.15h-.261L6.15 7.569v9.445c0 .857.358 1.094 1.063 1.253l.02.004v.147H4.405v-.147l.019-.004c.705-.16 1.065-.397 1.065-1.253V6.987c0-.857-.358-1.094-1.064-1.254l-.018-.004zm19.25 3.668c-1.086.023-1.733 1.323-1.813 3.124H24V9.298a1.378 1.378 0 0 0-.342-.047Zm-1.862 3.632c-.1 1.756.86 3.239 2.204 3.634v-3.634z"/></svg>
+        <span>Article</span>
+      </a>
+    </div>
   </div>
   <p class="subtitle">Step through how the outbox pattern handles a real order placement — including what happens when the broker fails.</p>
 
@@ -249,7 +259,7 @@
       <div>
         <div class="box gray" style="min-height:140px;">
           <div class="box-title" style="margin-bottom:8px;">Transaction log</div>
-          <div id="txn-log" style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-secondary);line-height:1.7;">
+          <div id="txn-log" style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-secondary);line-height:1.7;overflow-wrap:anywhere;">
             <div>— awaiting action —</div>
           </div>
         </div>
@@ -307,6 +317,11 @@
     <a href="https://github.com/nayan-kunwar/transactional-outbox-demo" target="_blank" rel="noopener" aria-label="Star on GitHub">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
       <span>⭐ star on GitHub</span>
+    </a>
+    <span style="opacity:.6;">·</span>
+    <a href="https://medium.com/@nayankunwar678/the-transactional-outbox-pattern-because-distributed-systems-lie-6196c51debf7" target="_blank" rel="noopener" aria-label="Read full article on Medium">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.21 0A4.201 4.201 0 0 0 0 4.21v15.58A4.201 4.201 0 0 0 4.21 24h15.58A4.201 4.201 0 0 0 24 19.79v-1.093c-.137.013-.278.02-.422.02-2.577 0-4.027-2.146-4.09-4.832a7.592 7.592 0 0 1 .022-.708c.093-1.186.475-2.241 1.105-3.022a3.885 3.885 0 0 1 1.395-1.1c.468-.237 1.127-.367 1.664-.367h.023c.101 0 .202.004.303.01V4.211A4.201 4.201 0 0 0 19.79 0Zm.198 5.583h4.165l3.588 8.435 3.59-8.435h3.864v.146l-.019.004c-.705.16-1.063.397-1.063 1.254h-.003l.003 10.274c.06.676.424.885 1.063 1.03l.02.004v.145h-4.923v-.145l.019-.005c.639-.144.994-.353 1.054-1.03V7.267l-4.745 11.15h-.261L6.15 7.569v9.445c0 .857.358 1.094 1.063 1.253l.02.004v.147H4.405v-.147l.019-.004c.705-.16 1.065-.397 1.065-1.253V6.987c0-.857-.358-1.094-1.064-1.254l-.018-.004zm19.25 3.668c-1.086.023-1.733 1.323-1.813 3.124H24V9.298a1.378 1.378 0 0 0-.342-.047Zm-1.862 3.632c-.1 1.756.86 3.239 2.204 3.634v-3.634z"/></svg>
+      <span>Read the full article</span>
     </a>
   </div>
 </div>
