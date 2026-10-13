@@ -191,13 +191,47 @@
     grid-template-columns: minmax(0,1fr) 52px minmax(0,1fr) 52px minmax(0,1fr);
     gap: 0;
     align-items: center;
-    margin-bottom: 32px;
+    margin-bottom: 0;
   }
   .top-grid > *, .bottom-grid > * { min-width: 0; }
   .arrow-connector {
     display: flex; align-items: center; padding: 0 4px;
+    position: relative;
   }
   .arrow-line { flex: 1; height: 1.5px; background: var(--color-border-secondary); }
+  .arrow-line.dashed { background: none; border-top: 1.5px dashed var(--color-border-secondary); height: 0; }
+  .arrow-label {
+    position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+    font-size: 9px; color: var(--color-text-secondary); white-space: nowrap;
+    background: var(--color-background-primary); padding: 0 3px;
+  }
+  .arr-head.down {
+    width: 0; height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 7px solid var(--color-border-secondary);
+  }
+  .arr-head.left {
+    width: 0; height: 0;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-right: 7px solid var(--color-border-secondary);
+  }
+  .arrow-label.side {
+    left: 50%; right: auto; top: 50%;
+    transform: translate(6px, -50%);
+  }
+  .publish-row {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 52px minmax(0,1fr) 52px minmax(0,1fr);
+    height: 40px;
+  }
+  .publish-arrow {
+    grid-column: 5;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .v-arrow-line { width: 1.5px; flex: 1; background: var(--color-border-secondary); }
 
   .bottom-grid {
     display: grid;
@@ -239,6 +273,7 @@
       <div class="arrow-connector">
         <div class="arrow-line"></div>
         <div class="arr-head right"></div>
+        <div class="arrow-label">writes</div>
       </div>
       <div class="box purple" id="box-db" style="position:relative;">
         <div class="box-title">Database</div>
@@ -246,12 +281,21 @@
         <div id="success-badge">✓ committed</div>
       </div>
       <div class="arrow-connector">
-        <div class="arrow-line"></div>
-        <div class="arr-head right"></div>
+        <div class="arr-head left"></div>
+        <div class="arrow-line dashed"></div>
+        <div class="arrow-label">polls</div>
       </div>
       <div class="box amber" id="box-relay">
         <div class="box-title">Message relay</div>
         <div class="box-sub">Polls outbox</div>
+      </div>
+    </div>
+
+    <div class="publish-row">
+      <div class="publish-arrow">
+        <div class="v-arrow-line"></div>
+        <div class="arr-head down"></div>
+        <div class="arrow-label side">publishes</div>
       </div>
     </div>
 
@@ -275,10 +319,7 @@
         </div>
       </div>
 
-      <div style="display:flex;align-items:flex-start;padding:0 4px;padding-top:32px;">
-        <div style="flex:1;height:1.5px;background:var(--color-border-secondary);margin-top:6px;"></div>
-        <div class="arr-head right"></div>
-      </div>
+      <div></div>
 
       <div>
         <div class="box coral" id="box-broker" style="min-height:140px;">
@@ -376,15 +417,22 @@ const scenarios = {
       showSuccess: true,
     },
     {
-      title: 'Step 2 — Broker is down!',
-      log: [['[relay] Publishing to broker...', 'ok'], ['[relay] ERROR: connection refused', 'err'], ['[relay] Publish failed — row stays pending', 'warn']],
+      title: 'Step 2 — Relay picks up row, tries to publish',
+      log: [['[relay] SELECT * FROM outbox WHERE published_at IS NULL', 'ok'], ['[relay] Found 1 pending row', 'ok'], ['[relay] Publishing to broker...', 'ok']],
+      outbox: [{ id: 'evt-002', type: 'order.created', status: 'pending' }],
+      broker: [], consumer: 'Waiting…',
+      highlight: 'box-relay', note: 'ok', noteText: 'Relay polls the outbox and picks up evt-002. Now publishing to the broker…',
+    },
+    {
+      title: 'Step 3 — Broker is down!',
+      log: [['[relay] ERROR: connection refused', 'err'], ['[relay] Publish failed — row stays pending', 'warn']],
       outbox: [{ id: 'evt-002', type: 'order.created', status: 'pending' }],
       broker: [], consumer: 'Waiting…',
       highlight: 'box-broker', note: 'fail', noteText: 'Broker is unreachable. Relay fails — but the outbox row is untouched.',
       shakeBox: 'box-broker',
     },
     {
-      title: 'Step 3 — Relay retries later',
+      title: 'Step 4 — Relay retries later',
       log: [['[relay] Broker recovered', 'ok'], ['[relay] Retrying pending rows...', 'ok'], ['[relay] Published evt-002 ✓', 'ok']],
       outbox: [],
       broker: [{ id: 'evt-002', type: 'order.created' }],
